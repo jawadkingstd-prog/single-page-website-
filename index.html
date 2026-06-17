@@ -1,0 +1,3431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AttendPro — Professional Attendance & Leave Management</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+ 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<style>
+/* 
+   CORE RESETS & CONFIGURATION
+    */
+
+*::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --dark-bg: #0f1419;
+  --dark-surface: #1a1f2e;
+  --dark-card: #232a3e;
+  --dark-hover: #2d3548;
+  
+  --accent-blue: #3b82f6;
+  --accent-light: #60a5fa;
+  --accent-neon: #0ea5e9;
+  --accent-dark: #1e40af;
+  
+  --success: #10b981;
+  --success-light: #34d399;
+  --warning: #f59e0b;
+  --warning-light: #fbbf24;
+  --danger: #ef4444;
+  --danger-light: #f87171;
+  --info: #06b6d4;
+  --info-light: #22d3ee;
+  
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --border-color: #334155;
+  --border-light: #475569;
+  
+  --gradient-1: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  --gradient-2: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  --gradient-3: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  
+  --sidebar-w: 280px;
+  --header-h: 64px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.7);
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--dark-bg);
+  color: var(--text-primary);
+  min-height: 90vh;
+  line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(228, 230, 236, 0.1) 0%, transparent 50%), 
+    radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 50%);
+}
+
+h1, h2, h3 { font-family: 'Poppins', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+h1 { font-size: 3rem; line-height: 1.1; }
+h2 { font-size: 2rem; line-height: 1.2; }
+h3 { font-size: 1.5rem; line-height: 1.3; }
+
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--dark-hover);
+  color: var(--accent-light);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.hidden { display: none !important; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+/* ANIMATIONS */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.1); } 50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), inset 0 0 30px rgba(59, 130, 246, 0.2); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes slideUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes welcomeText { 0% { opacity: 0; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes countUp { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+
+.animate-fadeInUp { animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-slideInDown { animation: slideInDown 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-fadeInLeft { animation: fadeInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-fadeInRight { animation: fadeInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-scaleIn { animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+.stagger-1 { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both; }
+.stagger-2 { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.10s both; }
+.stagger-3 { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both; }
+.stagger-4 { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.20s both; }
+.stagger-5 { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both; }
+
+/* WELCOME SCREEN */
+#welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f1419 0%, #1a2847 50%, #0f1419 100%);
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.welcome-container {
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.welcome-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background: var(--gradient-1);
+  border-radius: 24px;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 50px rgba(59, 130, 246, 0.4);
+  animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.welcome-logo svg {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.welcome-text {
+  margin: 0;
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #60a5fa 0%, #0ea5e9 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+  animation: welcomeText 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  letter-spacing: -0.02em;
+}
+
+.welcome-sub {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.welcome-loader {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-radius: 50%;
+  border-top-color: var(--accent-light);
+  animation: spin 0.8s linear infinite;
+}
+
+#welcome-screen.hidden { 
+  opacity: 0;
+  pointer-events: none;
+  animation: fadeInUp 0.6s ease-out reverse;
+}
+
+/* PAGE SWITCHING */
+.page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100vh;
+  display: none;
+  opacity: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.page.active {
+  display: flex;
+  opacity: 1;
+  z-index: 100;
+  pointer-events: auto;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* AUTHENTICATION PAGES */
+#page-auth {
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  position: relative;
+  overflow: hidden;
+}
+
+#page-auth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, rgba(15, 20, 25, 0.85) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(15, 20, 25, 0.9) 100%);
+  backdrop-filter: blur(8px);
+}
+
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #0f1419 0%, #1a2847 50%, #0f1419 100%);
+}
+
+.auth-left {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 4rem;
+  color: white;
+  max-width: 600px;
+}
+
+.auth-left h1 {
+  color: white;
+  margin-bottom: 1.5rem;
+  font-size: 2.8rem;
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.auth-left h1 span {
+  background: var(--gradient-1);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auth-left p {
+  font-size: 1.05rem;
+  color: rgba(203, 213, 225, 0.9);
+  line-height: 1.8;
+  max-width: 450px;
+  margin-bottom: 2.5rem;
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+.auth-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 3rem;
+  animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
+
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent-light);
+  backdrop-filter: blur(10px);
+}
+
+.feature-badge::before {
+  content: '✓';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--accent-light);
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.auth-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 460px;
+  margin: 2rem;
+  padding: 3rem;
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-surface) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+  animation: fadeInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-1);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-logo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+.brand-logo svg {
+  width: 26px;
+  height: 26px;
+}
+
+.auth-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.auth-sub {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: 1.5rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--dark-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.field-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.field-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.form-error {
+  font-size: 0.9rem;
+  color: var(--danger-light);
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid var(--danger);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  text-transform: capitalize;
+  font-family: 'Inter', sans-serif;
+  transition: all var(--transition);
+}
+
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active {
+  color: var(--accent-light);
+  border-bottom-color: var(--accent-blue);
+}
+
+.form-section { display: none; }
+.form-section.active { display: block; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: all var(--transition);
+}
+
+.btn-primary {
+  background: var(--gradient-1);
+  color: white;
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.5);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-primary.full {
+  width: 100%;
+  padding: 14px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--dark-hover);
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger-light);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success-light);
+  border: 1px solid var(--success);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent-light);
+  padding: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  transition: all var(--transition);
+}
+
+.btn-link:hover {
+  color: var(--accent-neon);
+  text-decoration: underline;
+}
+
+/* APPLICATION LAYOUT */
+#app-shell {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h);
+  z-index: 100;
+  padding: 0 1.5rem;
+  background: rgba(26, 31, 46, 0.95);
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(12px);
+}
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.mobile-avatar {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-1);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: all var(--transition);
+}
+
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all var(--transition);
+}
+
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(10px, 10px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--dark-surface) 0%, var(--dark-card) 100%);
+  border-right: 1px solid var(--border-color);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  transition: transform var(--transition);
+  overflow-y: auto;
+}
+
+.sidebar-top {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-bottom {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-brand span {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-blue) 100%);
+  border: 1px solid var(--accent-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: 0.5rem;
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+  transition: all var(--transition);
+}
+
+.sidebar-profile:hover {
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
+}
+
+.profile-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  color: var(--accent-dark);
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 800;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.profile-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.profile-id {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.profile-role-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 2px 8px;
+  margin-top: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  position: relative;
+  width: 100%;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  z-index: 1;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  transform: translateX(4px);
+  background: var(--dark-hover);
+}
+
+.nav-item.active {
+  color: white;
+  background: rgba(59, 130, 246, 0.2);
+  border-left: 3px solid var(--accent-blue);
+  font-weight: 600;
+  padding-left: 11px;
+}
+
+.nav-item.logout { color: var(--danger-light) !important; }
+.nav-item.logout:hover { background: rgba(239, 68, 68, 0.1) !important; }
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  width: calc(100% - var(--sidebar-w));
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 10;
+}
+
+.section {
+  display: none;
+  opacity: 0;
+  padding: 2.5rem;
+  min-height: 100vh;
+  width: 100%;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.section.active {
+  display: block;
+  opacity: 1;
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.section-sub {
+  font-size: 0.95rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.section-banner {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent-blue) 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.section-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(59, 130, 246, 0.2) 100%);
+}
+
+.banner-text-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* CARDS & GRIDS */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.75rem;
+  background: var(--dark-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+  transition: opacity var(--transition);
+}
+
+.stat-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent-blue);
+  background: var(--dark-hover);
+}
+
+.stat-card:hover::before { opacity: 1; }
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-light);
+}
+
+.stat-card.accent-card {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent-light);
+}
+
+.stat-card.accent-card::before { display: none; }
+.stat-card.accent-card .stat-label { color: rgba(255, 255, 255, 0.8); }
+.stat-card.accent-card .stat-value {
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-hover) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+  transition: opacity var(--transition);
+}
+
+.card:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 1rem;
+}
+
+.info-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-hover) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.5s ease-out forwards;
+  transition: all var(--transition);
+}
+
+.info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -50px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent);
+  border-radius: 50%;
+  transition: all var(--transition);
+}
+
+.info-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent-blue);
+}
+
+.info-card:hover::before { right: -30px; }
+
+.info-card-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.info-card-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-light);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.info-card-sub {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.info-card.accent-card {
+  background: var(--gradient-1);
+  border-color: var(--accent-light);
+}
+
+.info-card.accent-card::before { display: none; }
+.info-card.accent-card .info-card-label,
+.info-card.accent-card .info-card-value,
+.info-card.accent-card .info-card-sub { color: white; }
+
+/* TABLES */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  background: var(--dark-surface);
+  border-bottom: 1.5px solid var(--border-color);
+  letter-spacing: 0.05em;
+}
+
+.data-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+
+.data-table tbody tr { transition: all var(--transition); }
+.data-table tbody tr:hover {
+  background: var(--dark-hover);
+  color: var(--text-primary);
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 2.5rem !important;
+  font-size: 0.95rem;
+}
+
+/* STATUS & BADGES */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: capitalize;
+  font-family: 'Inter', sans-serif;
+}
+
+.badge::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-present { background: rgba(16, 185, 129, 0.15); color: var(--success-light); }
+.badge-absent { background: rgba(239, 68, 68, 0.15); color: var(--danger-light); }
+.badge-leave { background: rgba(251, 191, 36, 0.15); color: var(--warning-light); }
+.badge-pending { background: rgba(6, 182, 212, 0.15); color: var(--info-light); }
+.badge-approved { background: rgba(16, 185, 129, 0.15); color: var(--success-light); }
+.badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--danger-light); }
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--dark-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  transition: all var(--transition);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  animation: pulse 2s infinite;
+}
+
+.status-pill.present {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-light);
+  border-color: var(--success);
+}
+
+.status-pill.present .status-dot {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+/* MODALS */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-hover) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 1rem;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+}
+
+.modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all var(--transition);
+  font-size: 1.4rem;
+}
+
+.modal-close:hover {
+  background: var(--dark-hover);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* NOTIFICATIONS */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--dark-card);
+  color: var(--text-primary);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  opacity: 0;
+  pointer-events: none;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition);
+  max-width: 400px;
+}
+
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toast::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-1);
+  border-radius: 12px 0 0 12px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--accent-light);
+  animation: spin 0.6s linear infinite;
+}
+
+/* QUICK STATS */
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.qs-item {
+  padding: 1rem;
+  text-align: center;
+  background: linear-gradient(135deg, var(--dark-card) 0%, var(--dark-hover) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+  transition: all var(--transition);
+}
+
+.qs-item:nth-child(1) { animation-delay: 0.05s; }
+.qs-item:nth-child(2) { animation-delay: 0.10s; }
+.qs-item:nth-child(3) { animation-delay: 0.15s; }
+.qs-item:nth-child(4) { animation-delay: 0.20s; }
+
+.qs-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent-blue);
+}
+
+.qs-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-light);
+}
+
+.qs-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* TIMELINE */
+.timeline {
+  position: relative;
+  padding: 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 60px;
+  padding-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  width: 22px;
+  height: 22px;
+  background: var(--dark-bg);
+  border: 3px solid var(--accent-blue);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--dark-card);
+}
+
+.timeline-item.checked-in::before {
+  border-color: var(--success);
+  box-shadow: 0 0 0 4px var(--dark-card), 0 0 12px var(--success);
+}
+
+.timeline-item.checked-out::before {
+  border-color: var(--info);
+  box-shadow: 0 0 0 4px var(--dark-card), 0 0 12px var(--info);
+}
+
+.timeline-item.break::before {
+  border-color: var(--warning);
+  box-shadow: 0 0 0 4px var(--dark-card), 0 0 12px var(--warning);
+}
+
+.timeline-item.leave::before {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px var(--dark-card), 0 0 12px var(--danger);
+}
+
+.timeline-content {
+  flex: 1;
+  padding: 1rem;
+  background: var(--dark-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+}
+
+.timeline-content:hover {
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.timeline-time {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 4px;
+}
+
+.timeline-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.timeline-desc {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .auth-left { display: none !important; }
+  .auth-container { margin: auto; }
+}
+
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+
+  .mobile-header { display: flex; }
+  
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open {
+    transform: translateX(0);
+    z-index: 250;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+    z-index: 220;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding-top: calc(var(--header-h) + 1.5rem);
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .quick-stats { grid-template-columns: 1fr 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+
+  #page-auth {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .auth-container { max-width: 100%; }
+  .section-title { font-size: 1.5rem; }
+  .section-header { flex-direction: column; }
+
+  .auth-left h1 { font-size: 2rem; }
+  .welcome-text { font-size: 2rem; }
+}
+
+@media (max-width: 480px) {
+  .cards-grid { grid-template-columns: 1fr; }
+  .quick-stats { grid-template-columns: 1fr; }
+  .stat-value { font-size: 1.8rem; }
+}
+</style>
+
+<body>
+<div class="auth-bg"></div>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen" class="">
+  <div class="welcome-container">
+    <div class="welcome-logo">
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="white"/>
+      </svg>
+    </div>
+    <h1 class="welcome-text">AttendPro</h1>
+    <p class="welcome-sub">🔥 Loading Firebase Version...</p>
+    <div class="welcome-loader"></div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div id="page-auth" class="page active">
+  <div class="auth-left">
+    <h1>Professional <span>Attendance</span><br/>Management</h1>
+    <p>Track, manage, and analyze your team's attendance with powerful insights, leave management, and real-time tracking—all powered by Firebase.</p>
+
+    <div class="auth-features">
+      <div class="feature-badge">Real-time Tracking</div>
+      <div class="feature-badge">Cloud Storage</div>
+      <div class="feature-badge">Advanced Analytics</div>
+      <div class="feature-badge">Team Insights</div>
+    </div>
+
+    <div class="auth-stats" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 0;">
+      <div class="auth-stat">
+        <div class="auth-stat-value" style="font-size: 2rem; color: var(--accent-light);">∞</div>
+        <div class="auth-stat-label">Uptime</div>
+      </div>
+      <div class="auth-stat">
+        <div class="auth-stat-value" style="font-size: 2rem; color: var(--accent-light);">∞</div>
+        <div class="auth-stat-label">Scalable</div>
+      </div>
+      <div class="auth-stat">
+        <div class="auth-stat-value" style="font-size: 2rem; color: var(--accent-light);">24/7</div>
+        <div class="auth-stat-label">Support</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="white"/>
+          </svg>
+        </div>
+        <span>AttendPro</span>
+      </div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-sub">Firebase Edition</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="tab-btn active" onclick="switchAuthTab('login', this)">Login</button>
+      <button class="tab-btn" onclick="switchAuthTab('signup', this)">Sign Up</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form" class="form-section active">
+      <form class="auth-form" onsubmit="return handleLogin(event)">
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <input type="email" id="login-email" placeholder="your@email.com" class="field-input" required/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" class="field-input" required/>
+        </div>
+        <div id="login-error" class="form-error hidden"></div>
+        <button type="submit" class="btn btn-primary full">
+          <span id="login-btn-text">Sign In</span>
+          <span id="login-spinner" class="loading-spinner hidden"></span>
+        </button>
+      </form>
+      <div style="text-align:center;margin-top:1.25rem;font-size:0.85rem;color:var(--text-tertiary);">
+        Try Firebase-based auth!<br/>
+        <code>admin@test.com</code> or <code>emp@test.com</code>
+      </div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="signup-form" class="form-section">
+      <form class="auth-form" onsubmit="return handleSignup(event)">
+        <div class="field-group">
+          <label class="field-label">Full Name</label>
+          <input type="text" id="signup-name" placeholder="Your full name" class="field-input" required/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email Address</label>
+          <input type="email" id="signup-email" placeholder="your@email.com" class="field-input" required/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Password</label>
+          <input type="password" id="signup-password" placeholder="••••••••" class="field-input" required/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Role</label>
+          <select id="signup-role" class="field-input" required>
+            <option value="">Select your role...</option>
+            <option value="Employee">Employee</option>
+            <option value="Admin">Administrator</option>
+          </select>
+        </div>
+        <div id="signup-error" class="form-error hidden"></div>
+        <button type="submit" class="btn btn-primary full">
+          <span id="signup-btn-text">Create Account</span>
+          <span id="signup-spinner" class="loading-spinner hidden"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" class="page">
+  <header class="mobile-header">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="mobile-brand">AttendPro</div>
+    <div class="mobile-avatar" id="mobile-avatar-txt" onclick="handleLogout()">A</div>
+  </header>
+
+  <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <div class="brand-logo" style="width:40px;height:40px">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" fill="white"/></svg>
+        </div>
+        <span>AttendPro</span>
+      </div>
+
+      <div class="sidebar-profile">
+        <div class="profile-avatar" id="sidebar-avatar">A</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebar-name">User</span>
+          <span class="profile-id" id="sidebar-email">user@email.com</span>
+          <span class="profile-role-badge" id="sidebar-role">Employee</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" onclick="showSection('dashboard',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" onclick="showSection('attendance',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Attendance
+        </button>
+        <button class="nav-item" onclick="showSection('leaves',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Leaves
+        </button>
+        <button class="nav-item" onclick="showSection('statistics',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="19" x2="19" y2="19"/><rect x="3" y="14" width="3" height="5"/><rect x="10" y="9" width="3" height="10"/><rect x="17" y="4" width="3" height="15"/></svg>
+          Statistics
+        </button>
+        <button class="nav-item admin-only hidden" onclick="showSection('admin-employees',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Employees
+        </button>
+        <button class="nav-item admin-only hidden" onclick="showSection('admin-leaves',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+          Leave Approvals
+        </button>
+        <button class="nav-item admin-only hidden" onclick="showSection('admin-timeline',this)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/><line x1="12" y1="6" x2="12" y2="11"/><line x1="12" y1="13" x2="12" y2="18"/></svg>
+          Activity Timeline
+        </button>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <button class="nav-item logout" onclick="handleLogout()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <!-- DASHBOARD SECTION -->
+    <section id="section-dashboard" class="section active">
+      <div class="section-header">
+        <div>
+          <div class="section-title">📊 Dashboard</div>
+          <div class="section-sub">Your attendance and leave overview</div>
+        </div>
+        <div class="status-pill" id="dash-status"><span class="status-dot"></span> Not Checked In</div>
+      </div>
+
+      <div class="quick-stats" id="quick-stats"></div>
+      <div class="cards-grid" id="dashboard-cards"></div>
+
+      <!-- Leave Balance Card -->
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">📋 Leave Balance</h3></div>
+        <div style="padding: 1.5rem;">
+          <div class="cards-grid">
+            <div class="info-card">
+              <div class="info-card-label">Casual Leaves</div>
+              <div class="info-card-value" id="leave-casual">10</div>
+              <div class="info-card-sub">Remaining</div>
+            </div>
+            <div class="info-card">
+              <div class="info-card-label">Sick Leaves</div>
+              <div class="info-card-value" id="leave-sick">8</div>
+              <div class="info-card-sub">Remaining</div>
+            </div>
+            <div class="info-card accent-card">
+              <div class="info-card-label">Annual Leaves</div>
+              <div class="info-card-value" id="leave-annual">15</div>
+              <div class="info-card-sub">Remaining</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Attendance -->
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">Recent Attendance</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Hours</th><th>Status</th></tr></thead>
+            <tbody id="recent-attendance"><tr><td colspan="5" class="empty-row">No records yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ATTENDANCE SECTION -->
+    <section id="section-attendance" class="section">
+      <div class="section-banner">
+        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&auto=format&fit=crop&q=70" alt="Attendance"/>
+        <div class="banner-overlay">
+          <div>
+            <div class="banner-text-title">⏰ Attendance</div>
+            <div>Mark and manage your daily check-ins</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="padding:2.5rem;text-align:center">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:4rem;font-weight:700;color:var(--accent-light);margin-bottom:0.75rem;letter-spacing:0.05em" id="live-clock">00:00:00</div>
+          <div style="color:var(--text-secondary);margin-bottom:2rem;font-size:1rem;font-weight:500" id="live-date">Loading...</div>
+          <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem">
+            <button class="btn btn-primary" id="checkin-btn" onclick="doCheckIn()">🎯 Check In</button>
+            <button class="btn btn-primary" id="break-btn" onclick="doBreak()" disabled>☕ Start Break</button>
+            <button class="btn btn-primary" id="checkout-btn" onclick="doCheckOut()" disabled>👋 Check Out</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-grid mt-6" id="attendance-summary"></div>
+
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">Attendance Records</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Break</th><th>Working Hours</th><th>Status</th></tr></thead>
+            <tbody id="attendance-records"><tr><td colspan="6" class="empty-row">No records found</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEAVES SECTION -->
+    <section id="section-leaves" class="section">
+      <div class="section-banner">
+        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&auto=format&fit=crop&q=70" alt="Leaves"/>
+        <div class="banner-overlay">
+          <div>
+            <div class="banner-text-title">🌴 Leave Management</div>
+            <div>Request and track your leave balance</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div>
+          <div class="section-title" style="margin-top: -0.5rem;">My Leaves</div>
+          <div class="section-sub">View and request leaves</div>
+        </div>
+        <button class="btn btn-primary" onclick="openLeaveRequestModal()">➕ Request Leave</button>
+      </div>
+
+      <!-- Leave Balance Summary -->
+      <div class="cards-grid">
+        <div class="stat-card">
+          <div class="stat-label">Casual Leaves</div>
+          <div class="stat-value" id="leave-casual-card">10</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sick Leaves</div>
+          <div class="stat-value" id="leave-sick-card">8</div>
+        </div>
+        <div class="stat-card accent-card">
+          <div class="stat-label">Annual Leaves</div>
+          <div class="stat-value" id="leave-annual-card">15</div>
+        </div>
+      </div>
+
+      <!-- Leave History -->
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">Leave History</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody id="leave-history"><tr><td colspan="6" class="empty-row">No leave requests yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICS SECTION -->
+    <section id="section-statistics" class="section">
+      <div class="section-banner">
+        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=70" alt="Statistics"/>
+        <div class="banner-overlay">
+          <div>
+            <div class="banner-text-title">📈 Analytics & Insights</div>
+            <div>Deep dive into your attendance performance</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">📊 Performance Summary</h3></div>
+        <div class="cards-grid" style="padding: 1.5rem;">
+          <div class="stat-card">
+            <div class="stat-label">Today</div>
+            <div class="stat-value" id="stat-today">0h</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">This Week</div>
+            <div class="stat-value" id="stat-week">0h</div>
+          </div>
+          <div class="stat-card accent-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value" id="stat-month">0h</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: EMPLOYEES -->
+    <section id="section-admin-employees" class="section admin-only">
+      <div class="section-header">
+        <div>
+          <div class="section-title">👥 Manage Employees</div>
+          <div class="section-sub">View and manage team members</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddEmployeeModal()">➕ Add Employee</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">All Employees</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="employees-table"><tr><td colspan="5" class="empty-row">Loading employees...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: LEAVE APPROVALS -->
+    <section id="section-admin-leaves" class="section admin-only">
+      <div class="section-header">
+        <div>
+          <div class="section-title">✅ Leave Approvals</div>
+          <div class="section-sub">Review and approve/reject leave requests</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Pending Leave Requests</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead>
+            <tbody id="admin-leave-requests"><tr><td colspan="7" class="empty-row">No pending requests</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">Recently Processed</h3></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Employee</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody id="admin-leave-processed"><tr><td colspan="7" class="empty-row">No processed requests yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: TIMELINE -->
+    <section id="section-admin-timeline" class="section admin-only">
+      <div class="section-header">
+        <div>
+          <div class="section-title">📜 Activity Timeline</div>
+          <div class="section-sub">Monitor all employee activities</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">Employee Timeline</h3></div>
+        <div style="padding: 1.5rem;">
+          <div class="timeline" id="activity-timeline">
+            <div class="timeline-item">
+              <div class="timeline-content">
+                <div class="timeline-time">No activities yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODALS -->
+
+<!-- Add Employee Modal -->
+<div id="add-employee-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Add New Employee</h3>
+      <button class="modal-close" onclick="closeAddEmployeeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Full Name</label>
+        <input type="text" id="emp-name-input" class="field-input" placeholder="Employee full name"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email Address</label>
+        <input type="email" id="emp-email-input" class="field-input" placeholder="employee@company.com"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Department</label>
+        <input type="text" id="emp-dept-input" class="field-input" placeholder="e.g., Engineering, Design, HR"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <input type="password" id="emp-pass-input" class="field-input" placeholder="••••••••"/>
+      </div>
+      <div id="emp-add-error" class="form-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddEmployeeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddEmployee()">Create Employee</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Request Modal -->
+<div id="leave-request-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 class="modal-title">Request Leave</h3>
+      <button class="modal-close" onclick="closeLeaveRequestModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Leave Type</label>
+        <select id="leave-type-input" class="field-input" required>
+          <option value="">Select leave type...</option>
+          <option value="Casual">Casual Leave</option>
+          <option value="Sick">Sick Leave</option>
+          <option value="Annual">Annual Leave</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">From Date</label>
+        <input type="date" id="leave-from-input" class="field-input" required/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">To Date</label>
+        <input type="date" id="leave-to-input" class="field-input" required/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Reason</label>
+        <textarea id="leave-reason-input" class="field-input" placeholder="Reason for leave..." style="resize: vertical; min-height: 80px;"></textarea>
+      </div>
+      <div id="leave-request-error" class="form-error hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeLeaveRequestModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLeaveRequest()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- FIREBASE CONFIGURATION & INITIALIZATION -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+// Global Firebase variables - MUST be defined before use
+let firebase_initialized = false;
+let auth = null;
+let db = null;
+
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDrMuB8s8mXuRF1jTy4dkkz6GIlz5nOKN0",
+  authDomain: "attendance-pro-2a9db.firebaseapp.com",
+  projectId: "attendance-pro-2a9db",
+  storageBucket: "attendance-pro-2a9db.firebasestorage.app",
+  messagingSenderId: "79243373780",
+  appId: "1:79243373780:web:75cf21bb00d2483ab19f41",
+  measurementId: "G-CJ6PKM73G0",
+  databaseURL: "https://attendance-pro-2a9db-default-rtdb.firebaseio.com/"
+};
+
+// ═════════════════════════════════════════════════════════════════════════
+// YAHAN SE SELECT KARNA SHURU KAREIN 
+// ═════════════════════════════════════════════════════════════════════════
+
+// Initialize Firebase PROPERLY (Realtime Database Version)
+try {
+  
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  
+  // 2. Global variables ko sahi se set karein
+  auth = firebase.auth();
+db = firebase.database(); 
+firebase_initialized = true;
+
+console.log('✅ Firebase Initialized Successfully');
+console.log('✅ Auth:', auth ? 'Available' : 'NOT AVAILABLE');
+console.log('✅ Realtime DB:', db ? 'Available' : 'NOT AVAILABLE');
+
+} catch (error) {
+  console.error('❌ Firebase Initialization Error:', error);
+  firebase_initialized = false;
+}
+</script>
+
+<s>
+class FirebaseService {
+  
+  static checkFirebase() {
+
+    if (!firebase_initialized || !auth || !db) {
+      throw new Error('Firebase not properly initialized');
+    }
+  }
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+
+<!-- FIREBASE SERVICE CLASS -->
+
+
+<script>
+class FirebaseService {
+  
+  static checkFirebase() {
+    if (!firebase_initialized || !auth || !db) {
+      throw new Error('Firebase not properly initialized');
+    }
+  }
+  
+  static async signup(email, password, name, role) {
+    try {
+      this.checkFirebase();
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
+      
+      await db.collection('users').doc(uid).set({
+        uid, email, name, role,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'Active',
+        department: role === 'Admin' ? 'Management' : 'Unassigned'
+      });
+      
+      await db.collection('leave_balance').doc(uid).set({
+        userId: uid,
+        casual: 10, sick: 8, annual: 15,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('✅ User registered:', uid);
+      return { uid, email, name, role };
+    } catch (error) {
+      console.error('❌ Signup error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async login(email, password) {
+    try {
+      this.checkFirebase();
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (!userDoc.exists) throw new Error('User data not found');
+      const userData = userDoc.data();
+      console.log('✅ User logged in:', email);
+      return { uid, ...userData };
+    } catch (error) {
+      throw error;
+    }
+  }
+  
+  static async logout() {
+    try {
+      this.checkFirebase();
+      await auth.signOut();
+      console.log('✅ User logged out');
+    } catch (error) {
+      console.error('❌ Logout error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async getCurrentUser() {
+    return new Promise((resolve) => {
+      if (!firebase_initialized || !auth) {
+        resolve(null);
+        return;
+      }
+      
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          try {
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            resolve({ uid: user.uid, ...userDoc.data() });
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
+  
+  static async saveCheckIn(userId, checkInTime) {
+    try {
+      this.checkFirebase();
+      const today = new Date().toISOString().split('T')[0];
+      await db.collection('attendance').doc(`${userId}_${today}`).set({
+        userId, date: today, checkIn: checkInTime,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'present'
+      }, { merge: true });
+      console.log('✅ Check-in saved');
+      return true;
+    } catch (error) {
+      console.error('❌ Check-in error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async saveCheckOut(userId, checkOutTime, breakMinutes = 0) {
+    try {
+      this.checkFirebase();
+      const today = new Date().toISOString().split('T')[0];
+      await db.collection('attendance').doc(`${userId}_${today}`).set({
+        userId, date: today, checkOut: checkOutTime, breakMinutes,
+        checkedOut: true,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Check-out saved');
+      return true;
+    } catch (error) {
+      console.error('❌ Check-out error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async getAttendanceRecords(userId, limit = 30) {
+    try {
+      this.checkFirebase();
+      const records = await db.collection('attendance')
+        .where('userId', '==', userId)
+        .orderBy('date', 'desc')
+        .limit(limit)
+        .get();
+      
+      const data = [];
+      records.forEach(doc => data.push(doc.data()));
+      console.log(`✅ Fetched ${data.length} attendance records`);
+      return data;
+    } catch (error) {
+      return [];
+    }
+  }
+  
+  static async getTodayAttendance(userId) {
+    try {
+      this.checkFirebase();
+      const today = new Date().toISOString().split('T')[0];
+      const doc = await db.collection('attendance').doc(`${userId}_${today}`).get();
+      return doc.exists ? doc.data() : {};
+    } catch (error) {
+      console.error('❌ Get today attendance error:', error.message);
+      return {};
+    }
+  }
+  
+  static async updateBreak(userId, breakMinutes) {
+    try {
+      this.checkFirebase();
+      const today = new Date().toISOString().split('T')[0];
+      await db.collection('attendance').doc(`${userId}_${today}`).set({
+        breakMinutes
+      }, { merge: true });
+      console.log('✅ Break updated');
+      return true;
+    } catch (error) {
+      console.error('❌ Update break error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async requestLeave(userId, employeeName, leaveType, fromDate, toDate, days, reason) {
+    try {
+      this.checkFirebase();
+      const leaveDoc = db.collection('leaves').doc();
+      
+      await leaveDoc.set({
+        id: leaveDoc.id, employeeId: userId, employeeName, type: leaveType,
+        fromDate, toDate, days, reason, status: 'Pending',
+        submittedDate: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('✅ Leave request submitted');
+      return leaveDoc.id;
+    } catch (error) {
+      console.error('❌ Leave request error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async getLeaveHistory(userId) {
+    try {
+      this.checkFirebase();
+      const records = await db.collection('leaves')
+        .where('employeeId', '==', userId)
+        .orderBy('submittedDate', 'desc')
+        .get();
+      
+      const data = [];
+      records.forEach(doc => data.push(doc.data()));
+      console.log(`✅ Fetched ${data.length} leave records`);
+      return data;
+    } catch (error) {
+      return [];
+    }
+  }
+  
+  static async getPendingLeaves() {
+    try {
+      this.checkFirebase();
+      const records = await db.collection('leaves')
+        .where('status', '==', 'Pending')
+        .orderBy('submittedDate', 'desc')
+        .get();
+      
+      const data = [];
+      records.forEach(doc => data.push(doc.data()));
+      console.log(`✅ Fetched ${data.length} pending leaves`);
+      return data;
+    } catch (error) {
+      console.error('❌ Get pending leaves error:', error.message);
+      return [];
+    }
+  }
+  
+  static async approveLeave(leaveId, userId, days, leaveType) {
+    try {
+      this.checkFirebase();
+      await db.collection('leaves').doc(leaveId).set({
+        status: 'Approved',
+        processedDate: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      const balanceRef = db.collection('leave_balance').doc(userId);
+      const balanceDoc = await balanceRef.get();
+      const balance = balanceDoc.data();
+      const typeKey = leaveType.toLowerCase();
+      const newBalance = Math.max(0, balance[typeKey] - days);
+      
+      await balanceRef.set({ [typeKey]: newBalance }, { merge: true });
+      console.log('✅ Leave approved and balance updated');
+      return true;
+    } catch (error) {
+      console.error('❌ Approve leave error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async rejectLeave(leaveId) {
+    try {
+      this.checkFirebase();
+      await db.collection('leaves').doc(leaveId).set({
+        status: 'Rejected',
+        processedDate: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Leave rejected');
+      return true;
+    } catch (error) {
+      console.error('❌ Reject leave error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async getLeaveBalance(userId) {
+    try {
+      this.checkFirebase();
+      const doc = await db.collection('leave_balance').doc(userId).get();
+      return doc.exists ? doc.data() : { casual: 10, sick: 8, annual: 15 };
+    } catch (error) {
+      console.error('❌ Get leave balance error:', error.message);
+      return { casual: 10, sick: 8, annual: 15 };
+    }
+  }
+  
+  static async getEmployeesList() {
+    try {
+      this.checkFirebase();
+      const records = await db.collection('users')
+        .where('role', '==', 'Employee')
+        .orderBy('createdAt', 'desc')
+        .get();
+      
+      const data = [];
+      records.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+      console.log(`✅ Fetched ${data.length} employees`);
+      return data;
+    } catch (error) {
+      console.error('❌ Get employees error:', error.message);
+      return [];
+    }
+  }
+  
+  static async addEmployee(email, password, name, department) {
+    try {
+      this.checkFirebase();
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
+      
+      await db.collection('users').doc(uid).set({
+        uid, email, name, role: 'Employee', department, status: 'Active',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      await db.collection('leave_balance').doc(uid).set({
+        userId: uid,
+        casual: 10, sick: 8, annual: 15,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('✅ Employee added:', uid);
+      return uid;
+    } catch (error) {
+      console.error('❌ Add employee error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async updateEmployeeStatus(userId, status, department) {
+    try {
+      this.checkFirebase();
+      await db.collection('users').doc(userId).set({
+        status, department
+      }, { merge: true });
+      console.log('✅ Employee updated');
+      return true;
+    } catch (error) {
+      console.error('❌ Update employee error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async addToTimeline(name, type, description) {
+    try {
+      this.checkFirebase();
+      const timelineDoc = db.collection('timeline').doc();
+      
+      await timelineDoc.set({
+        id: timelineDoc.id, name, type, description,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('✅ Timeline entry added');
+      return timelineDoc.id;
+    } catch (error) {
+      console.error('❌ Timeline error:', error.message);
+      throw error;
+    }
+  }
+  
+  static async getTimeline(limit = 50) {
+    try {
+      this.checkFirebase();
+      const records = await db.collection('timeline')
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      
+      const data = [];
+      records.forEach(doc => data.push(doc.data()));
+      console.log(`✅ Fetched ${data.length} timeline entries`);
+      return data;
+    } catch (error) {
+      console.error('❌ Get timeline error:', error.message);
+      return [];
+    }
+  }
+  
+  static listenToAttendance(userId, callback) {
+    if (!firebase_initialized || !db) return () => {};
+    
+    const today = new Date().toISOString().split('T')[0];
+    return db.collection('attendance').doc(`${userId}_${today}`)
+      .onSnapshot(
+        (doc) => { if (doc.exists) callback(doc.data()); },
+        (error) => console.error('❌ Attendance listener error:', error)
+      );
+  }
+  
+  static listenToPendingLeaves(callback) {
+    if (!firebase_initialized || !db) return () => {};
+    
+    return db.collection('leaves')
+      .where('status', '==', 'Pending')
+      .orderBy('submittedDate', 'desc')
+      .onSnapshot(
+        (snapshot) => {
+          const data = [];
+          snapshot.forEach(doc => data.push(doc.data()));
+          callback(data);
+        },
+        (error) => console.error('❌ Leaves listener error:', error)
+      );
+  }
+  
+  static listenToTimeline(callback) {
+    if (!firebase_initialized || !db) return () => {};
+    
+    return db.collection('timeline')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .onSnapshot(
+        (snapshot) => {
+          const data = [];
+          snapshot.forEach(doc => data.push(doc.data()));
+          callback(data);
+        },
+        (error) => console.error('❌ Timeline listener error:', error)
+      );
+  }
+  
+  static listenToEmployees(callback) {
+    if (!firebase_initialized || !db) return () => {};
+    
+    return db.collection('users')
+      .where('role', '==', 'Employee')
+      .onSnapshot(
+        (snapshot) => {
+          const data = [];
+          snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+          callback(data);
+        },
+        (error) => console.error('❌ Employees listener error:', error)
+      );
+  }
+}
+
+console.log('✅ FirebaseService class loaded');
+</script>
+
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+<!-- MAIN APPLICATION LOGIC -->
+<!-- ═════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+let currentUser = null;
+let currentUserRole = null;
+let appState = {
+  user: null,
+  userRole: null,
+  employees: {},
+  attendance: {},
+  leaves: {},
+  today: {},
+  timeline: []
+};
+
+let unsubscribers = [];
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const welcomeScreen = document.getElementById('welcome-screen');
+    welcomeScreen.classList.add('hidden');
+  }, 3000);
+  
+  initSystem();
+});
+
+async function initSystem() {
+  startClock();
+  await checkAuthState();
+  addAdminLeaveActionListener();
+}
+
+async function checkAuthState() {
+  try {
+    const user = await FirebaseService.getCurrentUser();
+    if (user) {
+      currentUser = user;
+      appState.user = user;
+      appState.userRole = user.role;
+      currentUserRole = user.role;
+      await loadUserData();
+      showApp();
+    } else {
+      showAuthPage();
+    }
+  } catch (error) {
+    console.error('Auth state check failed:', error);
+    showAuthPage();
+  }
+}
+
+async function loadUserData() {
+  try {
+    const leaveBalance = await FirebaseService.getLeaveBalance(currentUser.uid);
+    appState.user.leaveBalance = leaveBalance;
+    
+    const today = await FirebaseService.getTodayAttendance(currentUser.uid);
+    appState.today = today;
+    
+    const leaves = await FirebaseService.getLeaveHistory(currentUser.uid);
+    appState.leaves = leaves;
+    
+    if (currentUserRole === 'Admin') {
+      const employees = await FirebaseService.getEmployeesList();
+      appState.employees = {};
+      employees.forEach(emp => {
+        appState.employees[emp.id] = emp;
+      });
+    }
+    
+    console.log('✅ User data loaded');
+  } catch (error) {
+    console.error('❌ Error loading user data:', error);
+    showToast('⚠️ Error loading data');
+  }
+}
+
+function showAuthPage() {
+  const authPage = document.getElementById('page-auth');
+  const appShell = document.getElementById('app-shell');
+  
+  authPage.classList.add('active');
+  appShell.classList.remove('active');
+}
+
+function switchAuthTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tab + '-form').classList.add('active');
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  const spinnerEl = document.getElementById('login-spinner');
+  const btnText = document.getElementById('login-btn-text');
+  
+  spinnerEl.classList.remove('hidden');
+  btnText.textContent = '';
+  
+  try {
+    const user = await FirebaseService.login(email, password);
+    
+    currentUser = user;
+    currentUserRole = user.role;
+    appState.user = user;
+    appState.userRole = user.role;
+    
+    errorEl.classList.add('hidden');
+    
+    await loadUserData();
+    
+    setTimeout(() => {
+      showApp();
+      showToast(`✓ Welcome, ${user.name}!`);
+    }, 100);
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    spinnerEl.classList.add('hidden');
+    btnText.textContent = 'Sign In';
+    errorEl.textContent = '❌ Invalid email or password';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+async function handleSignup(e) {
+  e.preventDefault();
+  
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const role = document.getElementById('signup-role').value;
+  const errorEl = document.getElementById('signup-error');
+  const spinnerEl = document.getElementById('signup-spinner');
+  const btnText = document.getElementById('signup-btn-text');
+  
+  if (!name || !email || !password || !role) {
+    errorEl.textContent = '❌ All fields are required';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  
+  spinnerEl.classList.remove('hidden');
+  btnText.textContent = '';
+  
+  try {
+    const user = await FirebaseService.signup(email, password, name, role);
+    
+    currentUser = { uid: user.uid, ...user };
+    currentUserRole = user.role;
+    appState.user = currentUser;
+    appState.userRole = user.role;
+    
+    errorEl.classList.add('hidden');
+    
+    await loadUserData();
+    
+    setTimeout(() => {
+      showApp();
+      showToast(`✓ Account created! Welcome, ${name}!`);
+    }, 100);
+    
+  } catch (error) {
+    console.error('Signup error:', error);
+    spinnerEl.classList.add('hidden');
+    btnText.textContent = 'Create Account';
+    
+    if (error.code === 'auth/email-already-in-use') {
+      errorEl.textContent = '❌ Email already exists';
+    } else {
+      errorEl.textContent = '❌ ' + error.message;
+    }
+    errorEl.classList.remove('hidden');
+  }
+}
+
+async function handleLogout() {
+  if (confirm('Are you sure you want to logout?')) {
+    try {
+      unsubscribers.forEach(unsub => unsub());
+      unsubscribers = [];
+      
+      await FirebaseService.logout();
+      
+      currentUser = null;
+      currentUserRole = null;
+      appState = { user: null, userRole: null, employees: {}, attendance: {}, leaves: {}, today: {}, timeline: [] };
+      
+      document.getElementById('app-shell').classList.remove('active');
+      document.getElementById('page-auth').classList.add('active');
+      
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+      
+      showToast('✓ Logged out successfully!');
+      
+    } catch (error) {
+      console.error('Logout error:', error);
+      showToast('⚠️ Error logging out');
+    }
+  }
+}
+
+async function showApp() {
+  const authPage = document.getElementById('page-auth');
+  const appShell = document.getElementById('app-shell');
+  
+  authPage.classList.remove('active');
+  appShell.classList.add('active');
+  
+  updateUI();
+  
+  setTimeout(async () => {
+    renderDashboard();
+    showAdminSections();
+    renderLeaveBalance();
+    
+    if (currentUserRole === 'Admin') {
+      renderAdminEmployees();
+      renderAdminTimeline();
+      setupAdminListeners();
+    }
+  }, 100);
+}
+
+function setupAdminListeners() {
+  const unsubLeaves = FirebaseService.listenToPendingLeaves((leaves) => {
+    appState.leaves = leaves;
+    renderAdminLeaveRequests();
+  });
+  unsubscribers.push(unsubLeaves);
+  
+  const unsubTimeline = FirebaseService.listenToTimeline((timeline) => {
+    appState.timeline = timeline;
+    renderAdminTimeline();
+  });
+  unsubscribers.push(unsubTimeline);
+  
+  const unsubEmployees = FirebaseService.listenToEmployees((employees) => {
+    appState.employees = {};
+    employees.forEach(emp => {
+      appState.employees[emp.id] = emp;
+    });
+    renderAdminEmployees();
+  });
+  unsubscribers.push(unsubEmployees);
+}
+
+function updateUI() {
+  if (!currentUser) return;
+  
+  const initials = currentUser.name
+   
+  
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = currentUser.name;
+  document.getElementById('sidebar-email').textContent = currentUser.email;
+  document.getElementById('sidebar-role').textContent = currentUserRole;
+  document.getElementById('mobile-avatar-txt').textContent = initials;
+}
+
+function showAdminSections() {
+  const adminSections = document.querySelectorAll('.admin-only');
+  adminSections.forEach(section => {
+    if (currentUserRole === 'Admin') {
+      section.classList.remove('hidden');
+    } else {
+      section.classList.add('hidden');
+    }
+  });
+}
+
+async function doCheckIn() {
+  try {
+    const now = new Date();
+    const timeStr = formatTime(now);
+    
+    await FirebaseService.saveCheckIn(currentUser.uid, timeStr);
+    
+    appState.today = await FirebaseService.getTodayAttendance(currentUser.uid);
+    await FirebaseService.addToTimeline(currentUser.name, 'checked-in', `Checked in at ${timeStr}`);
+    
+    updateAttendanceButtons();
+    renderAttendanceRecords();
+    renderDashboard();
+    
+    showToast(`✅ Checked in at ${timeStr}`);
+    
+  } catch (error) {
+    console.error('Check-in error:', error);
+    showToast('⚠️ Error during check-in');
+  }
+}
+
+async function doBreak() {
+  try {
+    const today = appState.today;
+    const now = new Date();
+    
+    if (!today.breakStart) {
+      today.breakStart = now.getTime();
+      document.getElementById('break-btn').textContent = '☕ End Break';
+      
+      await FirebaseService.addToTimeline(currentUser.name, 'break', 'Break started');
+      showToast('☕ Break started!');
+      
+    } else {
+      const breakEnd = new Date().getTime();
+      const breakDuration = (breakEnd - today.breakStart) / 1000 / 60;
+      today.breakMinutes = (today.breakMinutes || 0) + breakDuration;
+      today.breakStart = null;
+      
+      await FirebaseService.updateBreak(currentUser.uid, today.breakMinutes);
+      document.getElementById('break-btn').textContent = '☕ Start Break';
+      
+      await FirebaseService.addToTimeline(currentUser.name, 'break', `Break ended (${Math.round(breakDuration)} mins)`);
+      showToast(`✓ Break ended! (${Math.round(breakDuration)} mins)`);
+    }
+    
+    appState.today = today;
+    updateAttendanceButtons();
+    renderAttendanceRecords();
+    renderDashboard();
+    
+  } catch (error) {
+    console.error('Break error:', error);
+    showToast('⚠️ Error updating break');
+  }
+}
+
+async function doCheckOut() {
+  try {
+    const today = appState.today;
+    
+    if (!today.checkIn) {
+      showToast('⚠️ Please check in first');
+      return;
+    }
+    
+    if (today.breakStart) {
+      const breakEnd = new Date().getTime();
+      const breakDuration = (breakEnd - today.breakStart) / 1000 / 60;
+      today.breakMinutes = (today.breakMinutes || 0) + breakDuration;
+      today.breakStart = null;
+    }
+    
+    const now = new Date();
+    const timeStr = formatTime(now);
+    
+    await FirebaseService.saveCheckOut(currentUser.uid, timeStr, today.breakMinutes);
+    
+    appState.today = await FirebaseService.getTodayAttendance(currentUser.uid);
+    await FirebaseService.addToTimeline(currentUser.name, 'checked-out', `Checked out at ${timeStr}`);
+    
+    updateAttendanceButtons();
+    renderAttendanceRecords();
+    renderDashboard();
+    
+    showToast(`✅ Checked out at ${timeStr}`);
+    
+  } catch (error) {
+    console.error('Check-out error:', error);
+    showToast('⚠️ Error during check-out');
+  }
+}
+
+function updateAttendanceButtons() {
+  const today = appState.today || {};
+  const btnIn = document.getElementById('checkin-btn');
+  const btnBrk = document.getElementById('break-btn');
+  const btnOut = document.getElementById('checkout-btn');
+  
+  btnIn.disabled = !!today.checkIn;
+  btnBrk.disabled = !today.checkIn || !!today.checkedOut;
+  btnOut.disabled = !today.checkIn || !!today.checkedOut;
+  
+  btnIn.textContent = today.checkIn ? '✓ Checked In' : '🎯 Check In';
+  btnBrk.textContent = today.breakStart ? '☕ End Break' : '☕ Start Break';
+  btnOut.textContent = today.checkedOut ? '✓ Checked Out' : '👋 Check Out';
+}
+
+function openLeaveRequestModal() {
+  document.getElementById('leave-request-modal').classList.remove('hidden');
+}
+
+function closeLeaveRequestModal() {
+  document.getElementById('leave-request-modal').classList.add('hidden');
+  document.getElementById('leave-type-input').value = '';
+  document.getElementById('leave-from-input').value = '';
+  document.getElementById('leave-to-input').value = '';
+  document.getElementById('leave-reason-input').value = '';
+  document.getElementById('leave-request-error').classList.add('hidden');
+}
+
+async function submitLeaveRequest() {
+  const leaveType = document.getElementById('leave-type-input').value;
+  const fromDate = document.getElementById('leave-from-input').value;
+  const toDate = document.getElementById('leave-to-input').value;
+  const reason = document.getElementById('leave-reason-input').value;
+  const errorEl = document.getElementById('leave-request-error');
+  
+  if (!leaveType || !fromDate || !toDate || !reason) {
+    errorEl.textContent = '❌ Fill all fields';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  
+  if (new Date(toDate) < new Date(fromDate)) {
+    errorEl.textContent = '❌ End date cannot be before start date';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  
+  const days = Math.ceil((new Date(toDate) - new Date(fromDate)) / (1000 * 60 * 60 * 24)) + 1;
+  
+  try {
+    await FirebaseService.requestLeave(
+      currentUser.uid, currentUser.name, leaveType,
+      fromDate, toDate, days, reason
+    );
+    
+    await FirebaseService.addToTimeline(
+      currentUser.name, 'leave',
+      `Requested ${leaveType} leave for ${days} days`
+    );
+    
+    closeLeaveRequestModal();
+    
+    const leaves = await FirebaseService.getLeaveHistory(currentUser.uid);
+    appState.leaves = leaves;
+    renderLeaveHistory();
+    
+    showToast(`✓ Leave request submitted! (${days} days)`);
+    
+  } catch (error) {
+    console.error('Leave request error:', error);
+    errorEl.textContent = '❌ Error submitting request';
+    errorEl.classList.remove('hidden');
+  }
+}
+
+async function renderLeaveBalance() {
+  if (!currentUser) return;
+  
+  try {
+    const balance = await FirebaseService.getLeaveBalance(currentUser.uid);
+    
+    document.getElementById('leave-casual').textContent = balance.casual;
+    document.getElementById('leave-sick').textContent = balance.sick;
+    document.getElementById('leave-annual').textContent = balance.annual;
+    
+    document.getElementById('leave-casual-card').textContent = balance.casual;
+    document.getElementById('leave-sick-card').textContent = balance.sick;
+    document.getElementById('leave-annual-card').textContent = balance.annual;
+    
+  } catch (error) {
+    console.error('Error rendering leave balance:', error);
+  }
+}
+
+async function renderLeaveHistory() {
+  if (!currentUser) return;
+  
+  const tbody = document.getElementById('leave-history');
+  
+  try {
+    const leaves = await FirebaseService.getLeaveHistory(currentUser.uid);
+    
+    if (leaves.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No leave requests yet</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = leaves.map(leave => `
+      <tr>
+        <td><strong>${leave.type}</strong></td>
+        <td>${formatDate(leave.fromDate)}</td>
+        <td>${formatDate(leave.toDate)}</td>
+        <td>${leave.days}</td>
+        <td>${leave.reason.substring(0, 30)}${leave.reason.length > 30 ? '...' : ''}</td>
+        <td><span class="badge badge-${leave.status.toLowerCase()}">${leave.status}</span></td>
+      </tr>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Error rendering leave history:', error);
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Error loading leaves</td></tr>';
+  }
+}
+
+async function approveLeave(leaveId) {
+  try {
+    const leaves = await FirebaseService.getPendingLeaves();
+    const leave = leaves.find(l => l.id === leaveId);
+    
+    if (!leave) {
+      showToast('⚠️ Leave not found');
+      return;
+    }
+    
+    await FirebaseService.approveLeave(leaveId, leave.employeeId, leave.days, leave.type);
+    
+    await FirebaseService.addToTimeline(
+      'Admin', 'leave',
+      `Approved ${leave.days} days ${leave.type} leave for ${leave.employeeName}`
+    );
+    
+    const pending = await FirebaseService.getPendingLeaves();
+    appState.leaves = pending;
+    renderAdminLeaveRequests();
+    
+    showToast(`✅ Leave APPROVED for ${leave.employeeName}!`);
+    
+  } catch (error) {
+    console.error('Approve leave error:', error);
+    showToast('⚠️ Error approving leave');
+  }
+}
+
+async function rejectLeave(leaveId) {
+  try {
+    const leaves = await FirebaseService.getPendingLeaves();
+    const leave = leaves.find(l => l.id === leaveId);
+    
+    if (!leave) {
+      showToast('⚠️ Leave not found');
+      return;
+    }
+    
+    await FirebaseService.rejectLeave(leaveId);
+    
+    await FirebaseService.addToTimeline(
+      'Admin', 'leave',
+      `Rejected ${leave.days} days ${leave.type} leave for ${leave.employeeName}`
+    );
+    
+    const pending = await FirebaseService.getPendingLeaves();
+    appState.leaves = pending;
+    renderAdminLeaveRequests();
+    
+    showToast(`❌ Leave REJECTED for ${leave.employeeName}`);
+    
+  } catch (error) {
+    console.error('Reject leave error:', error);
+    showToast('⚠️ Error rejecting leave');
+  }
+}
+
+async function renderAdminLeaveRequests() {
+  const tbody = document.getElementById('admin-leave-requests');
+  
+  try {
+    const pendingLeaves = await FirebaseService.getPendingLeaves();
+    
+    if (pendingLeaves.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">No pending requests</td></tr>';
+    } else {
+      tbody.innerHTML = pendingLeaves.map((leave) => `
+        <tr>
+          <td><strong>${leave.employeeName}</strong></td>
+          <td>${leave.type}</td>
+          <td>${formatDate(leave.fromDate)}</td>
+          <td>${formatDate(leave.toDate)}</td>
+          <td>${leave.days}</td>
+          <td>${leave.reason.substring(0, 20)}${leave.reason.length > 20 ? '...' : ''}</td>
+          <td style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-success" data-action="approve" data-leave-id="${leave.id}" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">✓ Approve</button>
+            <button type="button" class="btn btn-danger" data-action="reject" data-leave-id="${leave.id}" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">✕ Reject</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    
+    const allLeaves = appState.leaves || [];
+    const processed = allLeaves
+      .filter(l => l.status === 'Approved' || l.status === 'Rejected')
+      .sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate))
+      .slice(0, 15);
+    
+    const processedBody = document.getElementById('admin-leave-processed');
+    if (processed.length === 0) {
+      processedBody.innerHTML = '<tr><td colspan="7" class="empty-row">No processed requests yet</td></tr>';
+    } else {
+      processedBody.innerHTML = processed.map(leave => `
+        <tr>
+          <td><strong>${leave.employeeName}</strong></td>
+          <td>${leave.type}</td>
+          <td>${formatDate(leave.fromDate)}</td>
+          <td>${formatDate(leave.toDate)}</td>
+          <td>${leave.days}</td>
+          <td>${leave.reason.substring(0, 20)}${leave.reason.length > 20 ? '...' : ''}</td>
+          <td><span class="badge badge-${leave.status.toLowerCase()}">${leave.status}</span></td>
+        </tr>
+      `).join('');
+    }
+    
+  } catch (error) {
+    console.error('Error rendering admin leave requests:', error);
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Error loading requests</td></tr>';
+  }
+}
+
+async function renderAdminEmployees() {
+  const tbody = document.getElementById('employees-table');
+  
+  try {
+    const empList = await FirebaseService.getEmployeesList();
+    
+    if (empList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No employees found</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = empList.map(emp => `
+      <tr>
+        <td><strong>${emp.name}</strong></td>
+        <td>${emp.email}</td>
+        <td>${emp.department || 'Unassigned'}</td>
+        <td><span class="badge badge-${emp.status === 'Active' ? 'present' : 'absent'}">${emp.status}</span></td>
+        <td><button class="btn-link" onclick="editEmployee('${emp.id}')">Edit</button></td>
+      </tr>
+    `).join('');
+    
+  } catch (error) {
+    console.error('Error rendering employees:', error);
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Error loading employees</td></tr>';
+  }
+}
+
+function openAddEmployeeModal() {
+  document.getElementById('add-employee-modal').classList.remove('hidden');
+}
+
+function closeAddEmployeeModal() {
+  document.getElementById('add-employee-modal').classList.add('hidden');
+  document.getElementById('emp-name-input').value = '';
+  document.getElementById('emp-email-input').value = '';
+  document.getElementById('emp-dept-input').value = '';
+  document.getElementById('emp-pass-input').value = '';
+  document.getElementById('emp-add-error').classList.add('hidden');
+}
+
+async function submitAddEmployee() {
+  const name = document.getElementById('emp-name-input').value.trim();
+  const email = document.getElementById('emp-email-input').value.trim();
+  const dept = document.getElementById('emp-dept-input').value.trim();
+  const pass = document.getElementById('emp-pass-input').value;
+  const errorEl = document.getElementById('emp-add-error');
+  
+  if (!name || !email || !dept || !pass) {
+    errorEl.textContent = '❌ Please fill all fields';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  
+  try {
+    await FirebaseService.addEmployee(email, pass, name, dept);
+    
+    await FirebaseService.addToTimeline('Admin', 'employee', `Added new employee: ${name}`);
+    
+    closeAddEmployeeModal();
+    renderAdminEmployees();
+    renderDashboard();
+    
+    showToast(`✓ Employee added! (${name})`);
+    
+  } catch (error) {
+    console.error('Add employee error:', error);
+    
+    if (error.code === 'auth/email-already-in-use') {
+      errorEl.textContent = '❌ Email already exists';
+    } else {
+      errorEl.textContent = '❌ ' + error.message;
+    }
+    errorEl.classList.remove('hidden');
+  }
+}
+
+function editEmployee(empId) {
+  showToast('Edit feature coming soon!');
+}
+
+async function renderAdminTimeline() {
+  const container = document.getElementById('activity-timeline');
+  
+  try {
+    const timeline = await FirebaseService.getTimeline(30);
+    
+    if (timeline.length === 0) {
+      container.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-tertiary);">No activities yet</div>';
+      return;
+    }
+    
+    container.innerHTML = timeline.map((item, idx) => {
+      const time = new Date(item.timestamp.toDate ? item.timestamp.toDate() : item.timestamp);
+      return `
+        <div class="timeline-item ${item.type}" style="animation-delay: ${idx * 0.05}s;">
+          <div class="timeline-content">
+            <div class="timeline-time">${time.toLocaleString()}</div>
+            <div class="timeline-title">${item.name}</div>
+            <div class="timeline-desc">${item.description}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+  } catch (error) {
+    console.error('Error rendering timeline:', error);
+    container.innerHTML = '<div style="padding: 2rem; color: var(--text-tertiary);">Error loading timeline</div>';
+  }
+}
+
+async function renderDashboard() {
+  if (!currentUser) return;
+  
+  try {
+    const today = appState.today || {};
+    const status = today.checkedOut ? 'Checked Out' : today.checkIn ? 'Present ✓' : 'Not Checked In';
+    const statusPill = document.getElementById('dash-status');
+    statusPill.className = 'status-pill';
+    if (today.checkIn && !today.checkedOut) statusPill.classList.add('present');
+    statusPill.innerHTML = `<span class="status-dot"></span> ${status}`;
+    
+    const workingHours = today.checkIn && today.checkOut ? 
+      Math.max(0, (getMinutesDiff(today.checkIn, today.checkOut) - (today.breakMinutes || 0)) / 60) : 0;
+    
+    document.getElementById('quick-stats').innerHTML = `
+      <div class="qs-item"><div class="qs-value" style="color:var(--success-light)">${Object.keys(appState.employees).length}</div><div class="qs-label">Team Size</div></div>
+      <div class="qs-item"><div class="qs-value" style="color:var(--accent-light)">0</div><div class="qs-label">On Leave</div></div>
+      <div class="qs-item"><div class="qs-value" style="color:var(--accent-light)">0</div><div class="qs-label">Pending Leaves</div></div>
+      <div class="qs-item"><div class="qs-value" style="color:var(--accent-neon)">${workingHours.toFixed(1)}h</div><div class="qs-label">Your Hours</div></div>
+    `;
+    
+    document.getElementById('dashboard-cards').innerHTML = `
+      <div class="info-card"><div class="info-card-label">Check In</div><div class="info-card-value">${today.checkIn || '—:—'}</div></div>
+      <div class="info-card"><div class="info-card-label">Check Out</div><div class="info-card-value">${today.checkOut || '—:—'}</div></div>
+      <div class="info-card"><div class="info-card-label">Break</div><div class="info-card-value">${today.breakMinutes ? Math.round(today.breakMinutes) + 'm' : '0m'}</div></div>
+      <div class="info-card accent-card"><div class="info-card-label">Working Hours</div><div class="info-card-value">${workingHours.toFixed(1)}h</div></div>
+    `;
+    
+    renderRecentAttendance();
+    renderLeaveBalance();
+    updateAttendanceButtons();
+    
+  } catch (error) {
+    console.error('Error rendering dashboard:', error);
+  }
+}
+
+async function renderRecentAttendance() {
+  const tbody = document.getElementById('recent-attendance');
+  
+  try {
+    const records = await FirebaseService.getAttendanceRecords(currentUser.uid, 7);
+    
+    if (records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-row">No records yet</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = records.map(r => {
+      const hours = r.checkIn && r.checkOut ? Math.max(0, (getMinutesDiff(r.checkIn, r.checkOut) - (r.breakMinutes || 0)) / 60) : 0;
+      return `<tr><td>${formatDate(r.date)}</td><td>${r.checkIn || '—'}</td><td>${r.checkOut || '—'}</td><td>${hours.toFixed(1)}h</td><td><span class="badge badge-${r.checkOut ? 'present' : 'absent'}">${r.checkOut ? 'Present' : 'Partial'}</span></td></tr>`;
+    }).join('');
+    
+  } catch (error) {
+    console.error('Error rendering recent attendance:', error);
+  }
+}
+
+async function renderAttendanceRecords() {
+  const tbody = document.getElementById('attendance-records');
+  
+  try {
+    const records = await FirebaseService.getAttendanceRecords(currentUser.uid, 30);
+    
+    if (records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No records found</td></tr>';
+      document.getElementById('attendance-summary').innerHTML = `
+        <div class="info-card"><div class="info-card-label">Total Hours</div><div class="info-card-value">0h</div></div>
+        <div class="info-card"><div class="info-card-label">Total Break</div><div class="info-card-value">0h</div></div>
+        <div class="info-card accent-card"><div class="info-card-label">Overtime</div><div class="info-card-value">0h</div></div>
+      `;
+      return;
+    }
+    
+    let totalHours = 0, totalBreak = 0;
+    tbody.innerHTML = records.map(r => {
+      const hours = r.checkIn && r.checkOut ? Math.max(0, (getMinutesDiff(r.checkIn, r.checkOut) - (r.breakMinutes || 0)) / 60) : 0;
+      totalHours += hours;
+      totalBreak += r.breakMinutes || 0;
+      const overtime = Math.max(0, hours - 8);
+      return `<tr><td>${formatDate(r.date)}</td><td>${r.checkIn || '—'}</td><td>${r.checkOut || '—'}</td><td>${(r.breakMinutes || 0).toFixed(0)}m</td><td>${hours.toFixed(1)}h</td><td><span class="badge badge-${r.checkOut ? 'present' : 'absent'}">${overtime > 0 ? '+' + overtime.toFixed(1) + 'h' : 'Regular'}</span></td></tr>`;
+    }).join('');
+    
+    document.getElementById('attendance-summary').innerHTML = `
+      <div class="info-card"><div class="info-card-label">Total Hours</div><div class="info-card-value">${totalHours.toFixed(1)}h</div></div>
+      <div class="info-card"><div class="info-card-label">Total Break</div><div class="info-card-value">${(totalBreak / 60).toFixed(1)}h</div></div>
+      <div class="info-card accent-card"><div class="info-card-label">Overtime</div><div class="info-card-value">${Math.max(0, totalHours - 160).toFixed(1)}h</div></div>
+    `;
+    
+  } catch (error) {
+    console.error('Error rendering attendance records:', error);
+  }
+}
+
+async function renderStatistics() {
+  if (!currentUser) return;
+  
+  try {
+    let todayHours = 0, weekHours = 0, monthHours = 0;
+    const today = appState.today || {};
+    
+    if (today.checkIn && today.checkOut) {
+      todayHours = Math.max(0, (getMinutesDiff(today.checkIn, today.checkOut) - (today.breakMinutes || 0)) / 60);
+    }
+    
+    const records = await FirebaseService.getAttendanceRecords(currentUser.uid, 30);
+    
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    
+    records.forEach(r => {
+      const recDate = new Date(r.date);
+      if (recDate >= weekStart) {
+        if (r.checkIn && r.checkOut) {
+          const hours = Math.max(0, (getMinutesDiff(r.checkIn, r.checkOut) - (r.breakMinutes || 0)) / 60);
+          weekHours += hours;
+        }
+      }
+      if (r.checkIn && r.checkOut) {
+        const hours = Math.max(0, (getMinutesDiff(r.checkIn, r.checkOut) - (r.breakMinutes || 0)) / 60);
+        monthHours += hours;
+      }
+    });
+    
+    document.getElementById('stat-today').textContent = todayHours.toFixed(1) + 'h';
+    document.getElementById('stat-week').textContent = weekHours.toFixed(1) + 'h';
+    document.getElementById('stat-month').textContent = monthHours.toFixed(1) + 'h';
+    
+  } catch (error) {
+    console.error('Error rendering statistics:', error);
+  }
+}
+
+function addAdminLeaveActionListener() {
+  document.body.addEventListener('click', event => {
+    const target = event.target instanceof Element ? event.target : event.target.parentElement;
+    const button = target ? target.closest('button[data-action]') : null;
+    if (!button) return;
+    
+    const leaveId = button.dataset.leaveId;
+    const action = button.dataset.action;
+    
+    if (action === 'approve') approveLeave(leaveId);
+    else if (action === 'reject') rejectLeave(leaveId);
+  });
+}
+
+function showSection(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const section = document.getElementById('section-' + name);
+  if (section) {
+    section.classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+  
+  if (name === 'dashboard') renderDashboard();
+  else if (name === 'attendance') { renderAttendanceRecords(); updateAttendanceButtons(); }
+  else if (name === 'leaves') { renderLeaveHistory(); renderLeaveBalance(); }
+  else if (name === 'statistics') renderStatistics();
+  else if (name === 'admin-employees') renderAdminEmployees();
+  else if (name === 'admin-leaves') renderAdminLeaveRequests();
+  else if (name === 'admin-timeline') renderAdminTimeline();
+  
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.querySelector('.sidebar-overlay');
+  const hamburger = document.querySelector('.hamburger');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+  hamburger.classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.sidebar-overlay').classList.remove('open');
+  document.querySelector('.hamburger').classList.remove('open');
+}
+
+function startClock() {
+  tick();
+  setInterval(tick, 1000);
+}
+
+function tick() {
+  const now = new Date();
+  const timeStr = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+  const clockEl = document.getElementById('live-clock');
+  if (clockEl) clockEl.textContent = timeStr;
+  const dateStr = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const dateEl = document.getElementById('live-date');
+  if (dateEl) dateEl.textContent = dateStr;
+}
+
+function formatTime(date) {
+  if (!date) return '—';
+  const d = date instanceof Date ? date : new Date(date);
+  return [d.getHours(), d.getMinutes()].map(n => String(n).padStart(2, '0')).join(':');
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  return new Date(str).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getMinutesDiff(time1, time2) {
+  const [h1, m1] = time1.split(':').map(Number);
+  const [h2, m2] = time2.split(':').map(Number);
+  return (h2 * 60 + m2) - (h1 * 60 + m1);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toast.classList.remove('hidden');
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.classList.add('hidden'), 300);
+  }, 3000);
+}
+
+console.log('✅ AttendPro Firebase app loaded - FIXED VERSION');
+</script>
+
+</body>
+</html>
